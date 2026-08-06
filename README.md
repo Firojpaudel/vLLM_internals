@@ -120,7 +120,7 @@ This workspace operates under a first-principles teaching framework:
 
 ## Learning Log
 
-*Entries are appended here at the end of every session using the template in [`AGENTS.md`](./AGENTS.md) §5. Newest entries are added at the bottom to maintain a chronological narrative of mastery.*
+*Entries are appended here at the end of every session. Newest entries are added at the bottom to maintain a chronological narrative of mastery.*
 
 <!-- Add session entries below this line -->
 
