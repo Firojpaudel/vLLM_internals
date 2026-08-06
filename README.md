@@ -1,8 +1,6 @@
 # vLLM Architecture Mastery — First-Principles Serving Engine
 
 > **A hands-on, research-backed curriculum for building production-grade LLM, TTS, and ASR serving engines from scratch.**
-> 
-> Guided by **[`AGENTS.md`](./AGENTS.md)** — a teaching contract that enforces learning by building rather than copy-pasting solutions.
 
 ---
 
@@ -76,7 +74,7 @@
 
 ## How This Repository Works
 
-This workspace operates under the **Teaching Contract** defined in **[`AGENTS.md`](./AGENTS.md)**:
+This workspace operates under a first-principles teaching framework:
 
 1. **You write the core logic** — the AI agent acts as mentor, reviewer, and research assistant.
 2. **Plumbing is provided by the agent** — test scripts, load generators, and plotting harnesses are written by the agent so you focus on engine architecture.
@@ -89,7 +87,6 @@ This workspace operates under the **Teaching Contract** defined in **[`AGENTS.md
 
 ```
 .
-├── AGENTS.md                  # Teaching contract & curriculum spec (read first!)
 ├── README.md                  # System overview & running proof-of-learning log
 ├── level0_naive/              # Level 0: Baseline naive HF serving & memory profiling
 ├── level1_continuous_batching/# Level 1: Request queue & continuous step scheduler

@@ -8,7 +8,6 @@ This document records the core architectural concepts, diagnostic questions, tec
 
 - **Harness & Benchmark**: [benchmark_naive.py](file:///c:/Users/firoj/OneDrive/Desktop/Codes%20practice/vLLM/level0_naive/benchmark_naive.py)
 - **Core Generator Implementation**: [naive_generator.py](file:///c:/Users/firoj/OneDrive/Desktop/Codes%20practice/vLLM/level0_naive/naive_generator.py)
-- **Teaching Contract & Rules**: [AGENTS.md](file:///c:/Users/firoj/OneDrive/Desktop/Codes%20practice/vLLM/AGENTS.md)
 - **Mastery Roadmap & Status**: [README.md](file:///c:/Users/firoj/OneDrive/Desktop/Codes%20practice/vLLM/README.md)
 
 ---
