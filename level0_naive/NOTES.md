@@ -110,10 +110,10 @@ past_key_values = (
 ```
 
 Each tensor has the shape:
-$$\text{shape} = (\text{batch\_size}, \text{num\_heads}, \text{seq\_len}, \text{head\_dim})$$
+$$\text{shape} = (\text{batch}_{\text{size}},\, \text{num}_{\text{heads}},\, \text{seq}_{\text{len}},\, \text{head}_{\text{dim}})$$
 
 At each decode iteration $k$, PyTorch performs tensor concatenation along the sequence length dimension ($\text{dim}=2$):
 
 $$\text{key}_{\text{new}} = \text{torch.cat}([\text{key}_{\text{past}}, \text{key}_{\text{step}}], \text{dim}=2)$$
 
-This operation requires allocating a completely new contiguous tensor of size $seq\_len + 1$ and copying the entire history over from GPU memory, leading to $O(N^2)$ memory copying overhead across sequence generation.
+This operation requires allocating a completely new contiguous tensor of size $\text{seq}_{\text{len}} + 1$ and copying the entire history over from GPU memory, leading to $O(N^2)$ memory copying overhead across sequence generation.
