@@ -13,7 +13,7 @@
 | **2** | **PagedAttention & KV Cache**<br>*(Logical/physical block tables, copy-on-write)* | Hand-trace block allocation & quantify fragmentation delta | Not Started | [`level2_paged_kv_cache/`](./level2_paged_kv_cache/) |
 | **3** | **Attention Kernels & CUDA Graphs**<br>*(Triton paged attention, CUDA graph capture)* | Kernel matches SDPA within tolerance + explain decode graph speedup | Not Started | [`level3_attention_kernels/`](./level3_attention_kernels/) |
 | **4** | **Advanced Scheduling**<br>*(Chunked prefill, preemption, recompute/swap)* | Measurably reduced decode-latency variance under mixed prefill/decode | Not Started | [`level4_advanced_scheduling/`](./level4_advanced_scheduling/) |
-| **5** | **Distributed Serving**<br>*(Driver/worker split, stateful workers, IPC)* | Articulate stateful worker rationale + multi-process driver-worker IPC | Not Started | [`level5_distributed/`](./level5_distributed/) |
+| **5** | **Distributed Serving & IPC**<br>*(Driver/worker split, stateful workers, ZeroMQ IPC)* | Articulate stateful worker rationale + multi-process driver-worker ZMQ IPC | Not Started | [`level5_distributed/`](./level5_distributed/) |
 | **6** | **Extending to Audio: TTS & ASR**<br>*(Paged KV for TTS, streaming ASR adaptation)* | Written transfer analysis + toy paged audio decoder benchmark | Not Started | [`level6_tts_asr/`](./level6_tts_asr/) |
 | **7** | **Capstone: Production Hardening**<br>*(OpenAI HTTP API, Prometheus metrics, benchmark suite)* | End-to-end load benchmark report & full serving stack demonstration | Not Started | [`level7_capstone/`](./level7_capstone/) |
 
@@ -53,8 +53,8 @@
                                            │
                                            ▼
                     ┌──────────────────────────────────────────────┐
-                    │ Level 5: Distributed Process Architecture     │
-                    │ Stateful Workers, Shared IPC & Scaling       │
+                    │ Level 5: Distributed Process & ZMQ IPC       │
+                    │ Stateful Workers, ZeroMQ Sockets & Scaling   │
                     └──────────────────────┬───────────────────────┘
                                            │
                                            ▼
@@ -93,7 +93,7 @@ This workspace operates under a first-principles teaching framework:
 ├── level2_paged_kv_cache/     # Level 2: Logical/physical block tables & manager
 ├── level3_attention_kernels/  # Level 3: Triton paged attention kernel & graph launcher
 ├── level4_advanced_scheduling/# Level 4: Chunked prefill & preemption scheduler
-├── level5_distributed/        # Level 5: Multi-process driver/worker IPC engine
+├── level5_distributed/        # Level 5: Multi-process driver/worker ZeroMQ IPC engine
 ├── level6_tts_asr/            # Level 6: Audio decoder paged KV serving engine
 └── level7_capstone/           # Level 7: OpenAI-compatible API & benchmark suite
 ```

@@ -96,6 +96,22 @@ Memory Allocation:  |── Active Tokens ──|────── Internal Fra
 
 ---
 
+### Question 3: KV Cache Concatenation and Memory Bandwidth Overhead
+**Question**: At decode step $k$, PyTorch passes `past_key_values` into the model forward pass and returns updated `past_key_values`. What operation is performed under the hood on Key and Value tensors at every single decode iteration, and why does this incur $O(N^2)$ memory copying overhead across sequence generation?
+
+**Technical Answer**:
+Standard PyTorch model implementations (e.g., HuggingFace `AutoModelForCausalLM`) allocate contiguous GPU memory buffers for each layer's Key and Value tensors. At decode iteration $k$:
+1. The model computes the new Key and Value projections for the single incoming token ($\text{seq}_{\text{step}} = 1$).
+2. To combine this single token vector with past context, PyTorch executes `torch.cat([key_{\text{past}}, key_{\text{step}}], dim=2)`.
+3. Because standard PyTorch tensors require contiguous physical memory layout, `torch.cat` cannot expand the buffer in-place. It must allocate a brand-new contiguous tensor of size $k$ in GPU VRAM and copy all $k-1$ historical tokens plus the 1 new token over HBM (High-Bandwidth Memory).
+4. Across generating $N$ tokens, the cumulative number of copied token vectors is:
+
+$$\text{Total Memory Copies} = \sum_{k=1}^{N} k = \frac{N(N+1)}{2} = O(N^2)$$
+
+This repeated allocation and memory copying saturates GPU memory bandwidth and creates physical memory fragmentation, which severely limits generation throughput.
+
+---
+
 ## 4. PyTorch KV Cache Tensor Structure (`past_key_values`)
 
 In standard HuggingFace PyTorch models (e.g., GPT-2, Llama), the KV cache is represented as a tuple of tuples across layers:
