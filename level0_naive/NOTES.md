@@ -110,6 +110,7 @@ past_key_values = (
 ```
 
 Each tensor has the shape:
+
 $$\text{shape} = (\text{batch}_{\text{size}},\, \text{num}_{\text{heads}},\, \text{seq}_{\text{len}},\, \text{head}_{\text{dim}})$$
 
 At each decode iteration $k$, PyTorch performs tensor concatenation along the sequence length dimension ($\text{dim}=2$):
