@@ -13,7 +13,7 @@ Establish a baseline autoregressive text generation loop using a HuggingFace cau
 ---
 
 ## 3. Current Understanding
-Autoregressive generation computes next-token logits iteratively. At each step, recalculating Key and Value representations for all preceding tokens from scratch would require $O(N^2)$ redundant forward compute per token, scaling to $O(N^3)$ total forward compute across sequence generation. Caching previous Key and Value activations ($KV$ cache) reduces step compute to $O(N)$ and total compute to $O(N^2)$.
+Autoregressive generation computes next-token logits iteratively. At each step, recalculating Key and Value representations for all preceding tokens from scratch would require $O(N^2)$ redundant forward compute per token, scaling to $O(N^3)$ total forward compute across sequence generation. Caching previous Key and Value activations (KV cache) reduces step compute to $O(N)$ and total compute to $O(N^2)$.
 
 ---
 
@@ -27,7 +27,7 @@ While the KV cache avoids redundant GEMM compute for historical tokens, it creat
 
 ## 5. Naive Approach
 1. **Sequential Single-Request Generation**: Process one prompt at a time. Allocate dynamic contiguous buffers, growing via `torch.cat` at each decode step.
-2. **Static Padded Batching**: Group multiple variable-length prompts into a single batch, padding all input prompts to the length of the longest prompt, and pre-allocating contiguous memory up to the maximum sequence length ($\text{max\_tokens}$).
+2. **Static Padded Batching**: Group multiple variable-length prompts into a single batch, padding all input prompts to the length of the longest prompt, and pre-allocating contiguous memory up to the maximum sequence length (`max_tokens`).
 
 ---
 
@@ -74,12 +74,15 @@ For a transformer with:
 - $P$: precision in bytes (e.g., 2 bytes for FP16/BF16)
 
 The KV cache memory consumption for a single token across all layers is:
+
 $$\text{Bytes per Token} = 2 \times L \times H \times D \times P$$
 
 For Llama-2-7B ($L = 32$, $H = 32$, $D = 128$, $P = 2$):
+
 $$\text{Bytes per Token} = 2 \times 32 \times 32 \times 128 \times 2 = 524,288 \text{ bytes} \approx 0.5 \text{ MB}$$
 
 Total memory reserved for batch size $B$ and maximum sequence length $S$:
+
 $$\text{Total Memory} = B \times S \times \text{Bytes per Token}$$
 
 ---
@@ -91,26 +94,26 @@ $$\text{Total Memory} = B \times S \times \text{Bytes per Token}$$
 
 ---
 
-## 11. Exact Reading Task
+## 11. Reading Assignment
 1. Read Section 1 and Section 2.1 ("Memory Management in LLM Serving") of the PagedAttention paper.
-2. Inspect how vLLM distinguishes prefill and decode inputs in `vllm/v1/engine/input_processor.py:L35-L80`.
+2. Inspect how vLLM distinguishes prefill and decode inputs in `vllm/v1/engine/input_processor.py`.
 
 ---
 
-## 12. Socratic Questions
+## 12. Architectural Questions
 1. If decode step execution time is dominated by reading model weights and KV cache from HBM rather than arithmetic operations, what happens to step latency if batch size increases from 1 to 8?
 2. Why does static allocation waste memory even when every request eventually generates 2048 tokens?
 
 ---
 
 ## 13. Implementation
-The learner implements the following functions in [naive_generator.py](./naive_generator.py):
+Implement the following functions in [naive_generator.py](./naive_generator.py):
 - `generate_sequential(model, tokenizer, prompts, max_new_tokens)`
 - `generate_padded_batch(model, tokenizer, prompts, max_new_tokens)`
 
 ---
 
-## 14. Tests
+## 14. Verification Tests
 Run [test_naive.py](./test_naive.py) to verify:
 - Output sequence token validity
 - KV cache tensor shape progression at each step
@@ -150,26 +153,6 @@ Production engines (like vLLM) never use PyTorch's `past_key_values` tuple-of-te
 
 ---
 
-## 19. What Remains Uncertain
+## 19. Open Architectural Questions
 - How do variable prompt lengths impact GPU memory bandwidth when batched together without padding?
 - What is the exact threshold where increasing batch size transitions decode from memory-bound to compute-bound?
-
----
-
-## 20. Mastery Check
-The learner can:
-1. Explain the prefill vs. decode asymmetry and why decode is memory-bandwidth bound.
-2. Derive the 0.5 MB/token KV cache formula for a 7B model.
-3. Successfully run `generate_sequential` and `generate_padded_batch` passing all tests in `test_naive.py`.
-4. Quantify the memory and throughput difference using `benchmark_naive.py`.
-
----
-
-## 21. Progress Update
-Upon completion, update [state/progress.md](../.agents/skills/vllm-learning/state/progress.md) for Stage 2 & 3.
-
-
----
-
-## 22. Next Dependency
-Level 1: Continuous (Iteration-Level) Batching and Request Scheduling (Orca architecture).

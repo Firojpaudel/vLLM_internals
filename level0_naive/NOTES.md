@@ -13,7 +13,6 @@ This document records the core architectural concepts, diagnostic questions, tec
 - **Unit Test Suite**: [test_naive.py](./test_naive.py)
 - **Mastery Roadmap & Status**: [README.md](../README.md)
 
-
 ---
 
 ## 2. Prefill vs. Decode Asymmetry
@@ -106,8 +105,11 @@ Memory Allocation:  |── Active Tokens ──|────── Internal Fra
 
 **Technical Answer**:
 [VERIFIED] Standard PyTorch model implementations (e.g., HuggingFace `AutoModelForCausalLM`) allocate contiguous GPU memory buffers for each layer's Key and Value tensors. At decode iteration $k$:
-1. The model computes the new Key and Value projections for the single incoming token ($\text{seq}_{\text{step}} = 1$).
-2. To combine this single token vector with past context, PyTorch executes `torch.cat([key_{\text{past}}, key_{\text{step}}], dim=2)`.
+1. The model computes the new Key and Value projections for the single incoming token (`seq_step = 1`).
+2. To combine this single token vector with past context, PyTorch executes:
+   ```python
+   key_new = torch.cat([key_past, key_step], dim=2)
+   ```
 3. Because standard PyTorch tensors require contiguous physical memory layout, `torch.cat` cannot expand the buffer in-place. It must allocate a brand-new contiguous tensor of size $k$ in GPU VRAM and copy all $k-1$ historical tokens plus the 1 new token over HBM (High-Bandwidth Memory).
 4. Across generating $N$ tokens, the cumulative number of copied token vectors is:
 
@@ -126,16 +128,20 @@ past_key_values = (
     (key_layer_0, value_layer_0),
     (key_layer_1, value_layer_1),
     ...
-    (key_layer_L-1, value_layer_L-1)
+    (key_layer_L_minus_1, value_layer_L_minus_1)
 )
 ```
 
 Each tensor has the shape:
 
-$$\text{shape} = (\text{batch}_{\text{size}},\, \text{num}_{\text{heads}},\, \text{seq}_{\text{len}},\, \text{head}_{\text{dim}})$$
+```python
+shape = (batch_size, num_heads, seq_len, head_dim)
+```
 
-At each decode iteration $k$, PyTorch performs tensor concatenation along the sequence length dimension ($\text{dim}=2$):
+At each decode iteration $k$, PyTorch performs tensor concatenation along the sequence length dimension (`dim=2`):
 
-$$\text{key}_{\text{new}} = \text{torch.cat}([\text{key}_{\text{past}}, \text{key}_{\text{step}}], \text{dim}=2)$$
+```python
+key_new = torch.cat([key_past, key_step], dim=2)
+```
 
-This operation requires allocating a completely new contiguous tensor of size $\text{seq}_{\text{len}} + 1$ and copying the entire history over from GPU memory, leading to $O(N^2)$ memory copying overhead across sequence generation.
+This operation requires allocating a completely new contiguous tensor of size `seq_len + 1` and copying the entire history over from GPU memory, leading to $O(N^2)$ memory copying overhead across sequence generation.
