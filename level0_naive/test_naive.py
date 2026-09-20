@@ -1,7 +1,20 @@
+import sys
 import unittest
+from pathlib import Path
+
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from level0_naive.naive_generator import generate_sequential, generate_padded_batch
+
+# Ensure project root is in sys.path for direct execution
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+try:
+    from level0_naive.naive_generator import generate_padded_batch, generate_sequential
+except ModuleNotFoundError:
+    from naive_generator import generate_padded_batch, generate_sequential
+
 
 class TestNaiveGenerator(unittest.TestCase):
     @classmethod
@@ -9,14 +22,14 @@ class TestNaiveGenerator(unittest.TestCase):
         # Use a tiny model for fast, reproducible testing
         cls.model_id = "hf-internal-testing/tiny-random-gpt2"
         cls.device = "cuda" if torch.cuda.is_available() else "cpu"
-        
+
         cls.tokenizer = AutoTokenizer.from_pretrained(cls.model_id)
         if cls.tokenizer.pad_token is None:
             cls.tokenizer.pad_token = cls.tokenizer.eos_token
-            
+
         cls.model = AutoModelForCausalLM.from_pretrained(cls.model_id).to(cls.device)
         cls.model.eval()
-        
+
         cls.prompts = [
             "Hello world",
             "The quick brown fox jumps over",
@@ -32,10 +45,10 @@ class TestNaiveGenerator(unittest.TestCase):
             self.prompts,
             max_new_tokens=max_new_tokens
         )
-        
+
         self.assertIsInstance(results, list, "Output must be a list")
         self.assertEqual(len(results), len(self.prompts), "Must return results for each prompt")
-        
+
         for i, seq in enumerate(results):
             self.assertIsInstance(seq, list, f"Sequence {i} must be a list of token IDs")
             self.assertGreater(len(seq), 0, f"Sequence {i} should have generated tokens")
@@ -56,10 +69,10 @@ class TestNaiveGenerator(unittest.TestCase):
             self.prompts,
             max_new_tokens=max_new_tokens
         )
-        
+
         self.assertIsInstance(results, list, "Output must be a list")
         self.assertEqual(len(results), len(self.prompts), "Must return results for each prompt")
-        
+
         for i, seq in enumerate(results):
             self.assertIsInstance(seq, list, f"Sequence {i} must be a list of token IDs")
             self.assertGreater(len(seq), 0, f"Sequence {i} should have generated tokens")
@@ -87,13 +100,14 @@ class TestNaiveGenerator(unittest.TestCase):
             self.prompts,
             max_new_tokens=max_new_tokens
         )
-        
+
         for i in range(len(self.prompts)):
             self.assertEqual(
                 seq_results[i],
                 batch_results[i],
                 f"Prompt {i} output divergence between sequential and batched decoding"
             )
+
 
 if __name__ == "__main__":
     unittest.main()
