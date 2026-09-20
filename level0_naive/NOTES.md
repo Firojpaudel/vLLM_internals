@@ -145,3 +145,39 @@ key_new = torch.cat([key_past, key_step], dim=2)
 ```
 
 This operation requires allocating a completely new contiguous tensor of size `seq_len + 1` and copying the entire history over from GPU memory, leading to $O(N^2)$ memory copying overhead across sequence generation.
+
+---
+
+## 5. Empirical Benchmark & Physical Findings
+
+[VERIFIED] Benchmark executed on host environment using `level0_naive/benchmark_naive.py`:
+
+### A. Telemetry & Environment
+- **GPU**: NVIDIA GeForce RTX 4090
+- **CUDA Toolkit**: 13.0
+- **PyTorch**: 2.14.0+cu130
+- **Model**: `hf-internal-testing/tiny-random-gpt2`
+- **Workload**: 5 variable-length prompts, `max_new_tokens = 32` (160 tokens total)
+- **Measurement Rigor**: Warmup pass + CUDA stream synchronization (`torch.cuda.synchronize()`)
+
+### B. Benchmark Results
+| Metric | Sequential Serving | Padded Batch Serving | Delta / Improvement |
+| :--- | :--- | :--- | :--- |
+| **Latency** | 0.2204 s | 0.0678 s | **3.25x speedup** |
+| **Throughput** | 725.86 tokens/s | 2360.32 tokens/s | **3.25x increase** |
+| **Peak VRAM** | 8.76 MB | 9.23 MB | +0.47 MB overhead |
+| **Parity** | Baseline | 100% Sequence Match | Exact Greedy Parity |
+
+Telemetry artifact logged to: [`level0_naive/benchmark_results.json`](./benchmark_results.json).
+
+### C. Physical Takeaways & Why Naive Batching Fails at Scale
+1. **GEMM vs. GEMV Arithmetic Intensity**:
+   - In sequential mode, the model must read all weights from GPU HBM on *every single decode step* for *each individual request* ($B=1$).
+   - In padded batch mode ($B=5$), the model loads weights from HBM once and multiplies them against the batched activation vectors, amortizing memory bandwidth cost and yielding a **3.25x throughput gain**.
+2. **The Left-Padding Positional Alignment Problem**:
+   - In causal models with absolute position embeddings (e.g. GPT-2), left-padding shifts prompt tokens unless explicit `position_ids` are supplied.
+   - Using `position_ids = attention_mask.long().cumsum(-1) - 1` properly zeroes out padding positions and restores token parity with single-sequence prefill.
+3. **The Static Allocation Ceiling (vLLM Motivation)**:
+   - While padded batching improves throughput over sequential processing for short sequences, it creates severe **internal fragmentation**: early-terminating sequences hold unused memory slots until the slowest sequence finishes.
+   - This motivates **Continuous Batching (Level 1)** and **PagedAttention (Level 2)**.
+

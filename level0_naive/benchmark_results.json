@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-09-20T17:07:34.194533+00:00",
+  "environment": {
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 4090",
+    "cuda_version": "13.0",
+    "pytorch_version": "2.14.0+cu130",
+    "python_version": "3.10.12",
+    "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35"
+  },
+  "workload": {
+    "model_id": "hf-internal-testing/tiny-random-gpt2",
+    "num_prompts": 5,
+    "max_new_tokens": 32,
+    "total_tokens_generated": 160,
+    "prompts": [
+      "Hello world",
+      "The quick brown fox jumps over",
+      "System architecture is",
+      "Deep learning inference requires efficient memory management",
+      "PagedAttention eliminates internal fragmentation"
+    ]
+  },
+  "metrics": {
+    "sequential": {
+      "latency_sec": 0.22042747799423523,
+      "peak_memory_mb": 8.75634765625,
+      "total_tokens_generated": 160,
+      "throughput_tok_per_sec": 725.8623174202647
+    },
+    "padded_batch": {
+      "latency_sec": 0.06778751499950886,
+      "peak_memory_mb": 9.22900390625,
+      "total_tokens_generated": 160,
+      "throughput_tok_per_sec": 2360.3166453462595
+    },
+    "comparison": {
+      "latency_speedup": 3.25,
+      "throughput_improvement": 3.25
+    }
+  }
+}
