@@ -8,7 +8,7 @@
 
 | Level | Topic & Core Focus | Checkpoint | Status | Directory |
 | :---: | :--- | :--- | :---: | :---: |
-| **0** | **The Problem vLLM Solves**<br>*(Naive serving, KV cache growth, memory waste)* | Explain KV cache bottleneck & draw prefill vs. decode asymmetry | Not Started | [`level0_naive/`](./level0_naive/) |
+| **0** | **The Problem vLLM Solves**<br>*(Naive serving, KV cache growth, memory waste)* | Explain KV cache bottleneck & draw prefill vs. decode asymmetry | [x] Completed | [`level0_naive/`](./level0_naive/) |
 | **1** | **Continuous Batching**<br>*(Iteration-level scheduling, Orca design)* | Sustained higher throughput than padded batching under variable load | Not Started | [`level1_continuous_batching/`](./level1_continuous_batching/) |
 | **2** | **PagedAttention & KV Cache**<br>*(Logical/physical block tables, copy-on-write)* | Hand-trace block allocation & quantify fragmentation delta | Not Started | [`level2_paged_kv_cache/`](./level2_paged_kv_cache/) |
 | **3** | **Attention Kernels & CUDA Graphs**<br>*(Triton paged attention, CUDA graph capture)* | Kernel matches SDPA within tolerance + explain decode graph speedup | Not Started | [`level3_attention_kernels/`](./level3_attention_kernels/) |
@@ -123,5 +123,25 @@ This workspace operates under a first-principles teaching framework:
 *Entries are appended here at the end of every session. Newest entries are added at the bottom to maintain a chronological narrative of mastery.*
 
 <!-- Add session entries below this line -->
+### Session 1: Level 0 — The Problem vLLM Solves (Baseline & Memory Bottleneck)
+- **Status**: [x] Completed
+- **Hardware Verified**: NVIDIA GeForce RTX 4090 (PyTorch 2.14.0+cu130, CUDA 13.0)
+- **Implementations**:
+  - `generate_sequential`: Manual prompt prefill and single-token decode loop with step-by-step KV cache tensor shape monitoring.
+  - `generate_padded_batch`: Batched causal LM generation using left-padding, explicit `position_ids` alignment, and dynamic attention mask extension.
+- **Verification**:
+  - Full unit test suite passing (`pytest level0_naive/test_naive.py -v`):
+    - `test_generate_sequential_structure`: PASSED
+    - `test_generate_padded_batch_structure`: PASSED
+    - `test_sequential_vs_batched_parity`: PASSED (100% token sequence parity confirmed)
+- **Empirical Benchmark (`level0_naive/benchmark_results.json`)**:
+  - Sequential: 725.86 tokens/sec (Latency: 0.2204s)
+  - Padded Batch: 2360.32 tokens/sec (Latency: 0.0678s)
+  - Speedup: **3.25x throughput gain** by amortizing GPU memory bandwidth over batch items.
+- **Physical Invariants & Core Takeaways**:
+  - Standard PyTorch contiguous tensors cannot expand in-place, incurring $O(N^2)$ memory copying overhead as KV cache grows token-by-token.
+  - Padded batching wastes prefill GEMM compute on `<pad>` tokens and locks unused memory slots (internal fragmentation) when sequences encounter `<EOS>` early.
+  - Causal models with absolute position embeddings require explicit `position_ids` calculation when using left-padding to prevent positional shift.
+
 
 
