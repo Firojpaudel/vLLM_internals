@@ -7,15 +7,15 @@
 ## Status & Curriculum Overview
 
 | Level | Topic & Core Focus | Checkpoint | Status | Directory |
-| :---: | :--- | :--- | :---: | :---: |
-| **0** | **The Problem vLLM Solves**<br>*(Naive serving, KV cache growth, memory waste)* | Explain KV cache bottleneck & draw prefill vs. decode asymmetry | [x] Completed | [`level0_naive/`](./level0_naive/) |
-| **1** | **Continuous Batching**<br>*(Iteration-level scheduling, Orca design)* | Sustained higher throughput than padded batching under variable load | Not Started | [`level1_continuous_batching/`](./level1_continuous_batching/) |
-| **2** | **PagedAttention & KV Cache**<br>*(Logical/physical block tables, copy-on-write)* | Hand-trace block allocation & quantify fragmentation delta | Not Started | [`level2_paged_kv_cache/`](./level2_paged_kv_cache/) |
-| **3** | **Attention Kernels & CUDA Graphs**<br>*(Triton paged attention, CUDA graph capture)* | Kernel matches SDPA within tolerance + explain decode graph speedup | Not Started | [`level3_attention_kernels/`](./level3_attention_kernels/) |
-| **4** | **Advanced Scheduling**<br>*(Chunked prefill, preemption, recompute/swap)* | Measurably reduced decode-latency variance under mixed prefill/decode | Not Started | [`level4_advanced_scheduling/`](./level4_advanced_scheduling/) |
-| **5** | **Distributed Serving & IPC**<br>*(Driver/worker split, stateful workers, ZeroMQ IPC)* | Articulate stateful worker rationale + multi-process driver-worker ZMQ IPC | Not Started | [`level5_distributed/`](./level5_distributed/) |
-| **6** | **Extending to Audio: TTS & ASR**<br>*(Paged KV for TTS, streaming ASR adaptation)* | Written transfer analysis + toy paged audio decoder benchmark | Not Started | [`level6_tts_asr/`](./level6_tts_asr/) |
-| **7** | **Capstone: Production Hardening**<br>*(OpenAI HTTP API, Prometheus metrics, benchmark suite)* | End-to-end load benchmark report & full serving stack demonstration | Not Started | [`level7_capstone/`](./level7_capstone/) |
+| :---: | :--- | :--- | :---: | :--- |
+| 0 | **The Problem vLLM Solves**<br><sub>Naive serving, KV cache growth, memory waste</sub> | Explain KV cache bottleneck & derive prefill vs. decode asymmetry | ✅ Completed | [level0_naive/](./level0_naive/) |
+| 1 | **Continuous Batching**<br><sub>Iteration-level scheduling, Orca design</sub> | Sustained higher throughput than padded batching under variable load | 🏊‍♂️ Ongoing | [level1_continuous_batching/](./level1_continuous_batching/) |
+| 2 | **PagedAttention & KV Cache**<br><sub>Logical/physical block tables, copy-on-write</sub> | Hand-trace block allocation & quantify fragmentation delta | ⌛ Planned | [level2_paged_kv_cache/](./level2_paged_kv_cache/) |
+| 3 | **Attention Kernels & CUDA Graphs**<br><sub>Triton paged attention, CUDA graph capture</sub> | Kernel matches SDPA within tolerance + explain decode graph speedup | ⌛ Planned | [level3_attention_kernels/](./level3_attention_kernels/) |
+| 4 | **Advanced Scheduling**<br><sub>Chunked prefill, preemption, recompute/swap</sub> | Measurably reduced decode-latency variance under mixed prefill/decode | ⌛ Planned | [level4_advanced_scheduling/](./level4_advanced_scheduling/) |
+| 5 | **Distributed Serving & IPC**<br><sub>Driver/worker split, stateful workers, ZeroMQ IPC</sub> | Articulate stateful worker rationale + multi-process driver-worker ZMQ IPC | ⌛ Planned | [level5_distributed/](./level5_distributed/) |
+| 6 | **Extending to Audio: TTS & ASR**<br><sub>Paged KV for TTS, streaming ASR adaptation</sub> | Written transfer analysis + toy paged audio decoder benchmark | ⌛ Planned | [level6_tts_asr/](./level6_tts_asr/) |
+| 7 | **Capstone: Production Hardening**<br><sub>OpenAI HTTP API, Prometheus metrics, benchmark suite</sub> | End-to-end load benchmark report & full serving stack demonstration | ⌛ Planned | [level7_capstone/](./level7_capstone/) |
 
 ---
 
@@ -124,7 +124,7 @@ This workspace operates under a first-principles teaching framework:
 
 <!-- Add session entries below this line -->
 ### Session 1: Level 0 — The Problem vLLM Solves (Baseline & Memory Bottleneck)
-- **Status**: [x] Completed
+- **Status**: ✅ Completed (Parity & Benchmark Invariants Verified)
 - **Hardware Verified**: NVIDIA GeForce RTX 4090 (PyTorch 2.14.0+cu130, CUDA 13.0)
 - **Implementations**:
   - `generate_sequential`: Manual prompt prefill and single-token decode loop with step-by-step KV cache tensor shape monitoring.
